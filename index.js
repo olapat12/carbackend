@@ -1,61 +1,32 @@
-const http = require('http')
+
 const express = require('express')
 const app = express();
 const cors = require('cors')
 const port = 128;
-const WebSocket = require('ws')
-const server = http.createServer(express)
-const wss = new WebSocket.Server({server})
 const dotenv = require('dotenv')
 const Car = require('./car')
 const mongoose = require('mongoose')
 
-let carData;
 dotenv.config();
 app.use(cors())
-mongoose.connect(process.env.DB_CONNECT, 
+mongoose.connect('mongodb+srv://olajide:tech10@cluster0.4x6cv.mongodb.net/catholic?retryWrites=true&w=majority', 
     { useNewUrlParser: true },
     ()=> console.log('connected to db'));
 
-//  const saving = function(){
-//     app.post('/car', async (res, req)=>{
 
-//         try {
-//             const savedData = await Car.save(carData)
-//             console.log(savedData)
-            
-//         } catch (error) {
-//             res.status(400).send(error)
-//             console.log(error)
-//         }
-//     })
-//  } 
+    app.get('/all', async(req, res)=>{
 
-wss.on('connection', (ws)=>{
+        try {
+          const all = await Car.find();
+          res.status(200).send(all)
+        } catch (error) {
+          console.log(error)
+        }
+      });
 
-    ws.on('message', async function incoming(data){
-        var objectt = JSON.parse(data);
-        
-      const cardata = new Car({
-          fuelLevel: objectt.fuelLevel,
-          speed: objectt.speed
+      app.get('/', async(req, res)=>{
+          res.send('hello world')
       })
-      try {
-        const savedData = await cardata.save()
-       // console.log(savedData)
-        
-    } catch (error) {
-        console.log(error)
-    }
-        wss.clients.forEach(function each(client){
-            if(client !== ws && client.readyState === WebSocket.OPEN){
-                client.send(data)
-                console.log(JSON.parse(data))
-            }
-        })
-    })
-});
 
 
-
-server.listen(port, ()=> console.log('running fast'))
+app.listen(port, ()=> console.log('running fast'))
